@@ -64,17 +64,33 @@ if __name__ == "__main__":
         album_name = song['track']['album']['name']
         album_release_date = song['track']['album']['release_date']
         album_total_track = song['track']['album']['total_tracks']
-        album_url = song['track']['album']['external_urls']['spotify']
-        album_information = {'album_id': album_id, 'name': album_name, 'release_date': album_release_date,
+        album_url = song['track']['external_urls']['spotify']
+        album_attributes = {'album_id': album_id, 'name': album_name, 'release_date': album_release_date,
                          'total_tracks': album_total_track, 'url': album_url}
         album_list.append(album_information)
 
 
+    # Creating Song Data Structure
 
-    df_song = pd.DataFrame( data = song_dict , columns = ['song_name', 'artist_name', 'album_music', 'year_release',
+    song_list = []
+    for song in data['items']:
+        song_id = song['track']['id']
+        song_name = song['track']['name']
+        song_duration = song['track']['duration_ms']
+        song_url = song['track']['external_urls']['spotify']
+        song_time_played = song['played_at']
+        album_id = song['track']['album']['id']
+        artist_id =song['track']['artists'][0]['id']
+        song_attributes = { 'song_id': song_id , 'song_name': song_name , 'song_duration': song_duration,
+                            'song_utl': song_url , 'song_time_played': song_time_played,
+                           'album_id': album_id , 'artist_id': artist_id}
+        song_list.append(song_attributes)
+
+
+   # df_song = pd.DataFrame( data = song_dict , columns = ['song_name', 'artist_name', 'album_music', 'year_release',
                                                             'played_at', 'timestamp'])
 
-    df_song.to_csv("songs.csv", index = False)
+    #df_song.to_csv("songs.csv", index = False)
 
 
 
