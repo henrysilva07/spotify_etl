@@ -10,7 +10,7 @@ from datetime import timedelta
 
 DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQDF2ZkuXpgWHmLloP-t2_UP5DKrdc2Sd3MfEwhcarkXXhaLCo0NVlSfCL7pYtOgHJ3J7Z5FG0Z6siVYfsnphQEVQqheF0s4WVuQjkFVhyCXz6WdPIRsewOYF80NqpPqxnh5vOeyXRpG4ONo-pBAZHllNZyUbpwYxcpFNJiQ'
+TOKEN = 'BQCFyiNg8IgjHN4ThdBrzSXJOLFynipvaj-NrQKK0alNGWULC8cnsGXbHG5gSghpMkWXYRlwcLOXZSVDHUQCv4X-zL-LsTBlgkduig6BG-oApQuqbbYPIFCgIFBiMO4SaR-YqanB-hhbBAFNmBwWfhvFCjOEgmG_FEi4i3Ev'
 
 if __name__ == "__main__":
     # Extract part of the ETL process
@@ -28,6 +28,7 @@ if __name__ == "__main__":
     r = requests.get(
         "https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=yesterday_unix_timestamp),
         headers=headers)
+
 
     data = r.json()
 
@@ -56,10 +57,27 @@ if __name__ == "__main__":
         "timestamp": timestamps
     }
 
+    # Creating the Album Data Structure:
+    album_list = []
+    for song in data['items']:
+        album_id = song['track']['album']['id']
+        album_name = song['track']['album']['name']
+        album_release_date = song['track']['album']['release_date']
+        album_total_track = song['track']['album']['total_tracks']
+        album_url = song['track']['album']['external_urls']['spotify']
+        album_information = {'album_id': album_id, 'name': album_name, 'release_date': album_release_date,
+                         'total_tracks': album_total_track, 'url': album_url}
+        album_list.append(album_information)
+
+
+
     df_song = pd.DataFrame( data = song_dict , columns = ['song_name', 'artist_name', 'album_music', 'year_release',
                                                             'played_at', 'timestamp'])
 
     df_song.to_csv("songs.csv", index = False)
+
+
+
 
 
 
