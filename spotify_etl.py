@@ -77,7 +77,7 @@ if __name__ == "__main__":
     for song in data['items']:
         artist_id = song['track']['artists'][0]['id']
         artist_name = song['track']['artists'][0]['name']
-        artist_url = song['track']['external_urls']['spotify']
+        artist_url = song['track']['artists'][0]['external_urls']['spotify']
         timestamp = song["played_at"][0:10]
         artist_attributes = {'artist_id': artist_id , 'artist_name': artist_name, 'artist_url': artist_url,
                              'timestamp': timestamp}
@@ -123,18 +123,42 @@ if __name__ == "__main__":
             print("Data valid, proceed to Load stage")
             pass
 
-    song_df.to_csv("teste.csv", index = False)
-    #engine = sqlalchemy.create_engine(DATABASE_LOCATION)
-    #conn = sqlite3.connect('minhas_musicas.sqlite')
+    song_df.to_csv("song.csv", index = False)
+    album_df.to_csv("album.csv", index = False)
+    artist_df.to_csv("artist.csv", index = False)
 
-    #Query para criação de tabelas
+    #Criação das tabelas
+    sql_query_artista = """
+     CREATE TABLE IF NOT EXISTS artistas(
+         artista_id VARCHAR(200),
+         nome_artista VARCHAR(200),
+         url_artista VARCHAR(200),
+         CONSTRAINT primary_key_constraint PRIMARY KEY (artista_id)
+     )
+     """
+
+    sql_query_album = """
+        CREATE TABLE IF NOT EXISTS albuns(
+            album_id VARCHAR(200),
+            nome_album VARCHAR(200),
+            lançamento VARCHAR(200),
+            url_album VARCHAR(200),
+            numero_musicas VARCHAR(200),
+            CONSTRAINT primary_key_constraint PRIMARY KEY (album_id)
+        )
+        """
 
 
 
 
-    #cursor = conn.cursor()
+    engine = sqlalchemy.create_engine(DATABASE_LOCATION)
+    conn = sqlite3.connect('minhas_musicas.sqlite')
 
-
+    cursor = conn.cursor()
+    cursor.execute(sql_query_artista)
+    cursor.execute(sql_query_album)
+    print("Opened database successfully")
+    cursor.close()
 
 
 
