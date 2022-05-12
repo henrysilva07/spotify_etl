@@ -3,14 +3,14 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3
-from datetime import timedelta
 
 
-DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
+
+DATABASE_LOCATION = "sqlite:///minhas_musicas.sqlite"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQADo7ogVxpEjhWKEyMxUwcES5YRrnKctRgBRvNqk5g5R1sgBeHQ15SLrAK9YVNh4bDqO3LSpnPb6LQq0CrQiOyEKQKyiUxKPS8jwRYUJAq0SWlH1AxYnGGtkS3J-Ae3RzqQhtY5k05qjZDmLs_bwOp1RwjeLWK0xvoXxO11'
+TOKEN = 'BQAE83oM7nsxq6t0FPl1xLfY5fXqVZLGjG_hemgKr9Lzv9s3_v7kPqULfTQxdBT4wCFE657NNgXLTd6_xhEmIb8U9y7YtwqGPjEwsGRRqEkU3JLIuOw0249PeXvqJRvLfR-2ueW0wDwxi5hmSgogN_LDCNwtmj0ALaZzLn36'
 
 
 def check_data(df: pd.DataFrame) -> bool:
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         album_id = song['track']['album']['id']
         artist_id = song['track']['artists'][0]['id']
         song_attributes = { 'song_id': song_id , 'song_name': song_name , 'song_duration': song_duration,
-                            'song_utl': song_url , 'song_time_played': song_time_played, 'timestamp':timestamp,
+                            'song_url': song_url , 'song_time_played': song_time_played, 'timestamp':timestamp,
                            'album_id': album_id , 'artist_id': artist_id}
         song_list.append(song_attributes)
 
@@ -108,6 +108,12 @@ if __name__ == "__main__":
 
     song_df = pd.DataFrame.from_dict(song_list)
 
+    song_df['song_time_played'] = pd.to_datetime(song_df['song_time_played'])
+    song_df['unix_timestamp'] =  song_df['song_time_played'].apply( lambda x: int (datetime.timestamp(x)))
+
+    song_df['identificador_unico'] = song_df['song_id'] + '-' + song_df['unix_timestamp'].astype("str")
+    song_df = song_df[['identificador_unico', 'song_name', 'song_duration' , 'song_url', 'song_time_played', 'album_id', 'artist_id', 'timestamp']]
+
     dados = []
 
     dados = [album_df, artist_df , song_df]
@@ -117,8 +123,16 @@ if __name__ == "__main__":
             print("Data valid, proceed to Load stage")
             pass
 
+    song_df.to_csv("teste.csv", index = False)
+    #engine = sqlalchemy.create_engine(DATABASE_LOCATION)
+    #conn = sqlite3.connect('minhas_musicas.sqlite')
 
-    print("Processo de load finalizado)
+    #Query para criação de tabelas
+
+
+
+
+    #cursor = conn.cursor()
 
 
 
