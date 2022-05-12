@@ -8,8 +8,7 @@ from LoadData import LoadData
 
 DATABASE_LOCATION = "sqlite:///minhas_musicas.db"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQDmyc-NAHhkCLkbK2vrqslR3MZQ_2_3kBvuxPJ0AlTiAXwD63v2f74Ki2pN5VLFNKFt6hH2mTtomHIbFYtvJEdH5A-HOPbTbVWh6qEbLA4P_iGERAK2G3sz6_K_Q_Jq3pTsitxZSDpXvfffU4apdj5BayLuvqXBPApEr91S'
-
+TOKEN = 'BQBwiqIbWGG_9HqmLYRHPnxuDevzMV3TE_8EBqVg1kVWDVFH3hwk5SYGagYtg5kgS_QolKWTbNJqE-EOO83C3sNK2tlGBCdCznG-mzEiFpFq2OPVZV7FGJgSK0WBEOrWGRo4DK_KuQXKQXS4r9fpF94FrqJ3uBVRQJO_-6Xe'
 
 def check_data(df: pd.DataFrame) -> bool:
     if df.empty:

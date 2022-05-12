@@ -15,16 +15,22 @@ class LoadData:
 
         conn = sqlite3.connect(self.nome_banco)
 
-
         return conn
+
+    def __executando_query(self, conn, query):
+
+        cursor = conn.cursor()
+        cursor.executescript(query)
+
+        return cursor
 
 
     def criando_table(self, query_table):
 
         conexao = self.__criando_conexao()
-        cursor = conexao.cursor()
-        cursor.execute(query_table)
+        cursor = self.__executando_query(conexao, query_table)
         cursor.close()
+        conexao.commit()
 
         return print("Tabela de dados criada")
 
@@ -34,35 +40,38 @@ class LoadData:
         self.__tabela_temporaria(tabela)
 
         conexao = self.__criando_conexao()
-        cursor = conexao.cursor()
 
-        cursor.execute(
-                f"""
+
+        query = f"""
                         INSERT INTO artistas
                         SELECT tmp_table.* FROM tmp_table
-                        LEFT JOIN artistas USING (id_artista)
-                        WHERE artistas.id_artista IS NULL;
+                        LEFT JOIN {tabela} USING ({id_tabela})
+                        WHERE {tabela}.{id_tabela} IS NULL;
+                        
+                        DROP TABLE tmp_table;
 
-                        """)
+                        """
+        cursor = self.__executando_query(conexao, query)
         conexao.commit()
 
 
     def __tabela_temporaria(self, tabela):
 
 
-        sql_query = f""" CREATE TEMP TABLE IF NOT EXISTS 
+        query = f""" CREATE TEMP TABLE IF NOT EXISTS 
                         tmp_table AS SELECT * FROM {tabela} LIMIT 0;
                         
                         """
 
-        cursor  = self.__criando_conexao()
+        conexao  = self.__criando_conexao()
 
-        cursor.executescript(sql_query)
+        cursor = self.__executando_query(conexao, query)
 
         self.dados.to_sql("tmp_table", con = self.engine , if_exists='append', index = False)
 
         cursor.close()
 
+        conexao.commit()
 
         return True
 
