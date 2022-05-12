@@ -1,16 +1,14 @@
-import sqlalchemy
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 import requests
 import json
 from datetime import datetime, timedelta
-import sqlite3
+from LoadData import LoadData
 
 
-
-DATABASE_LOCATION = "sqlite:///minhas_musicas.sqlite"
+DATABASE_LOCATION = "sqlite:///minhas_musicas.db"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQAE83oM7nsxq6t0FPl1xLfY5fXqVZLGjG_hemgKr9Lzv9s3_v7kPqULfTQxdBT4wCFE657NNgXLTd6_xhEmIb8U9y7YtwqGPjEwsGRRqEkU3JLIuOw0249PeXvqJRvLfR-2ueW0wDwxi5hmSgogN_LDCNwtmj0ALaZzLn36'
+TOKEN = 'BQDmyc-NAHhkCLkbK2vrqslR3MZQ_2_3kBvuxPJ0AlTiAXwD63v2f74Ki2pN5VLFNKFt6hH2mTtomHIbFYtvJEdH5A-HOPbTbVWh6qEbLA4P_iGERAK2G3sz6_K_Q_Jq3pTsitxZSDpXvfffU4apdj5BayLuvqXBPApEr91S'
 
 
 def check_data(df: pd.DataFrame) -> bool:
@@ -51,114 +49,117 @@ if __name__ == "__main__":
         "https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=yesterday_unix_timestamp),
         headers=headers)
 
-
-
     data = r.json()
+    print(r)
 
     # Creating Song Data Structure
-    song_list = []
-    for song in data['items']:
-        song_id = song['track']['id']
-        song_name = song['track']['name']
-        song_duration = song['track']['duration_ms']
-        song_url = song['track']['external_urls']['spotify']
-        song_time_played = song['played_at']
-        timestamp = song["played_at"][0:10]
-        album_id = song['track']['album']['id']
-        artist_id = song['track']['artists'][0]['id']
-        song_attributes = { 'song_id': song_id , 'song_name': song_name , 'song_duration': song_duration,
-                            'song_url': song_url , 'song_time_played': song_time_played, 'timestamp':timestamp,
-                           'album_id': album_id , 'artist_id': artist_id}
-        song_list.append(song_attributes)
+    musica_lista = []
+    for musica in data['items']:
+        id_musica = musica['track']['id']
+        nome_musica = musica['track']['name']
+        duracao_musica = musica['track']['duration_ms']
+        url_musica = musica['track']['external_urls']['spotify']
+        data_played = musica['played_at']
+        timestamp = musica["played_at"][0:10]
+        id_album = musica['track']['album']['id']
+        id_artista = musica['track']['artists'][0]['id']
+        musicas_atributos = { 'id_musica': id_musica , 'nome_musica': nome_musica , 'duracao_musica': duracao_musica,
+                            'url_musica': url_musica , 'data': data_played, 'timestamp':timestamp,
+                           'id_album': id_album , 'id_artista': id_artista}
+        musica_lista.append(musicas_atributos)
 
 
-    #Create Artist Data Structure
-    artist_list = []
-    for song in data['items']:
-        artist_id = song['track']['artists'][0]['id']
-        artist_name = song['track']['artists'][0]['name']
-        artist_url = song['track']['artists'][0]['external_urls']['spotify']
-        timestamp = song["played_at"][0:10]
-        artist_attributes = {'artist_id': artist_id , 'artist_name': artist_name, 'artist_url': artist_url,
+
+    artista_list = []
+    for musica in data['items']:
+        id_artista = musica['track']['artists'][0]['id']
+        nome_artista = musica['track']['artists'][0]['name']
+        url_artista = musica['track']['artists'][0]['external_urls']['spotify']
+        timestamp = musica["played_at"][0:10]
+        artista_atributos = {'id_artista': id_artista, 'nome_artista': nome_artista, 'url_artista': url_artista,
                              'timestamp': timestamp}
-        artist_list.append(artist_attributes)
+        artista_list.append(artista_atributos)
 
     album_list = []
-    for song in data['items']:
-        album_id = song['track']['album']['id']
-        album_name = song['track']['album']['name']
-        album_release_date = song['track']['album']['release_date']
-        album_total_tracks = song['track']['album']['total_tracks']
-        timestamp = song["played_at"][0:10]
-        album_url = song['track']['album']['external_urls']['spotify']
-        album_attributes = {'album_id': album_id, 'name': album_name, 'release_date': album_release_date,
-                         'total_tracks': album_total_tracks, 'url': album_url, 'timestamp': timestamp }
-        album_list.append(album_attributes)
+    for musica in data['items']:
+        id_album = musica['track']['album']['id']
+        nome_album = musica['track']['album']['name']
+        lancamento = musica['track']['album']['release_date']
+        total_musicas = musica['track']['album']['total_tracks']
+        timestamp = musica["played_at"][0:10]
+        url_album = musica['track']['album']['external_urls']['spotify']
+        album_atributos = {'id_album': id_album, 'nome-album': nome_album, 'lancamento': lancamento,
+                         'total_musicas': total_musicas, 'url_album': url_album, 'timestamp': timestamp}
+        album_list.append(album_atributos)
 
-
-
-    # We will need to do some cleaning and add our Unique ID for the Track
-    # Then load into SQLite3 from the dataframe
 
     album_df = pd.DataFrame.from_dict(album_list)
-    album_df = album_df.drop_duplicates(  subset=['album_id'] )
+    album_df = album_df.drop_duplicates(  subset=['id_album'])
 
-    artist_df = pd.DataFrame.from_dict(artist_list)
-    artist_df = artist_df.drop_duplicates( subset=['artist_id'] )
+    artist_df = pd.DataFrame.from_dict(artista_list)
+    artist_df = artist_df.drop_duplicates( subset=['id_artista'])
 
-    song_df = pd.DataFrame.from_dict(song_list)
 
-    song_df['song_time_played'] = pd.to_datetime(song_df['song_time_played'])
-    song_df['unix_timestamp'] =  song_df['song_time_played'].apply( lambda x: int (datetime.timestamp(x)))
+    musica_df = pd.DataFrame.from_dict(musica_lista)
 
-    song_df['identificador_unico'] = song_df['song_id'] + '-' + song_df['unix_timestamp'].astype("str")
-    song_df = song_df[['identificador_unico', 'song_name', 'song_duration' , 'song_url', 'song_time_played', 'album_id', 'artist_id', 'timestamp']]
+    musica_df['data'] = pd.to_datetime(musica_df['data'])
+    musica_df['unix_timestamp'] = musica_df['data'].apply( lambda x: int (datetime.timestamp(x)))
+
+    musica_df['identificador_unico'] = musica_df['id_musica'] + '-' + musica_df['unix_timestamp'].astype("str")
+    musica_df = musica_df[['identificador_unico', 'nome_musica', 'duracao_musica' , 'url_musica', 'data', 'id_album', 'id_artista', 'timestamp']]
 
     dados = []
 
-    dados = [album_df, artist_df , song_df]
+    dados = [album_df, artist_df , musica_df]
 
     for df in dados:
         if check_data(df):
             print("Data valid, proceed to Load stage")
             pass
 
-    song_df.to_csv("song.csv", index = False)
-    album_df.to_csv("album.csv", index = False)
-    artist_df.to_csv("artist.csv", index = False)
 
     #Criação das tabelas
     sql_query_artista = """
      CREATE TABLE IF NOT EXISTS artistas(
-         artista_id VARCHAR(200),
+         id_artista VARCHAR(200),
          nome_artista VARCHAR(200),
          url_artista VARCHAR(200),
-         CONSTRAINT primary_key_constraint PRIMARY KEY (artista_id)
+         CONSTRAINT primary_key_constraint PRIMARY KEY (id_artista)
      )
      """
 
     sql_query_album = """
         CREATE TABLE IF NOT EXISTS albuns(
-            album_id VARCHAR(200),
+            id_album VARCHAR(200),
             nome_album VARCHAR(200),
             lançamento VARCHAR(200),
             url_album VARCHAR(200),
             numero_musicas VARCHAR(200),
-            CONSTRAINT primary_key_constraint PRIMARY KEY (album_id)
+            CONSTRAINT primary_key_constraint PRIMARY KEY (id_album)
         )
         """
 
+    sql_query_musica = """
+        CREATE TABLE IF NOT EXISTS musicas(
+            id_unico VARCHAR(200),
+            nome_musica VARCHAR(200),
+            duracao_musica VARCHAR(200),
+            url_musica VARCHAR(200),
+            data_played VARCHAR(200),
+            id_album   VARCHAR(200),
+            id_artista VARCHAR(200),
+            timestamp VARCHAR(200), 
+            CONSTRAINT primary_key_constraint PRIMARY KEY (id_unico)
+        )
+        """
+    artist_df = artist_df[['id_artista', 'nome_artista', 'url_artista']]
 
+    conexao = LoadData( DATABASE_LOCATION, "minhas_musicas.db", artist_df)
 
+    conexao.criando_table(sql_query_artista)
 
-    engine = sqlalchemy.create_engine(DATABASE_LOCATION)
-    conn = sqlite3.connect('minhas_musicas.sqlite')
+    conexao.inserindo_dados("artistas", "id_artista")
 
-    cursor = conn.cursor()
-    cursor.execute(sql_query_artista)
-    cursor.execute(sql_query_album)
-    print("Opened database successfully")
-    cursor.close()
 
 
 
