@@ -1,14 +1,13 @@
 import pandas as pd
-from sqlalchemy.orm import sessionmaker
 import requests
-import json
 from datetime import datetime, timedelta
 from LoadData import LoadData
 
 
 DATABASE_LOCATION = "sqlite:///minhas_musicas.db"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQBwiqIbWGG_9HqmLYRHPnxuDevzMV3TE_8EBqVg1kVWDVFH3hwk5SYGagYtg5kgS_QolKWTbNJqE-EOO83C3sNK2tlGBCdCznG-mzEiFpFq2OPVZV7FGJgSK0WBEOrWGRo4DK_KuQXKQXS4r9fpF94FrqJ3uBVRQJO_-6Xe'
+TOKEN = 'BQAw81Ej4hQfBj7fine5yWzWhMKThyIoEe7i0CphJeiNVODRXHgCzSOSIZb1yLNALP9S8-fi-fADHN2ouKlC1Ymg-BzsqtiWQRSRIDOvRFXiHRbDBa3xB8ccaHnc_hLRGciie8yPJMtonz6fPC3_helnBQvsFXwlVBvPRU_b'
+
 
 def check_data(df: pd.DataFrame) -> bool:
     if df.empty:
@@ -107,7 +106,6 @@ if __name__ == "__main__":
     musica_df['id_musica'] = musica_df['id_musica'] + '-' + musica_df['unix_timestamp'].astype("str")
     musica_df = musica_df[['id_musica', 'nome_musica', 'duracao_musica' , 'url_musica', 'data', 'id_album', 'id_artista', 'timestamp']]
 
-    dados = []
 
     dados = [album_df, artist_df , musica_df]
 

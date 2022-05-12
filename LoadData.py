@@ -1,11 +1,11 @@
 import sqlalchemy
 import sqlite3
-import pandas as pd
+
 
 
 class LoadData:
 
-    def __init__(self , database,nome_banco,  dados ):
+    def __init__(self, database, nome_banco, dados):
 
         self.engine = sqlalchemy.create_engine(database)
         self.dados = dados
@@ -17,7 +17,8 @@ class LoadData:
 
         return conn
 
-    def __executando_query(self, conn, query):
+    @staticmethod
+    def __executando_query(conn, query):
 
         cursor = conn.cursor()
         cursor.executescript(query)
@@ -51,7 +52,7 @@ class LoadData:
                         DROP TABLE tmp_table;
 
                         """
-        cursor = self.__executando_query(conexao, query)
+        self.__executando_query(conexao, query)
         conexao.commit()
 
 
@@ -63,15 +64,14 @@ class LoadData:
                         
                         """
 
-        conexao  = self.__criando_conexao()
+        conexao = self.__criando_conexao()
 
         cursor = self.__executando_query(conexao, query)
 
-        self.dados.to_sql("tmp_table", con = self.engine , if_exists='append', index = False)
+        self.dados.to_sql("tmp_table", con=self.engine, if_exists='append', index=False)
 
         cursor.close()
 
         conexao.commit()
 
         return True
-
