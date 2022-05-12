@@ -10,31 +10,33 @@ from datetime import timedelta
 
 DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
 USER_ID = "Henry" # your Spotify username
-TOKEN = 'BQCHgDT-RCggex3sSM-3tYBlelssAhkIbWkxaiGQXJtR7CIWwTLXYRjXDAIypH30wr4Z1iVOCWXMOqGZNtnMLaYLl9JtY7FzpFi-5BkK8s_2k0VUuM7sd-Uv3F8gT0TyRSyfYNT8sXW1r6f0UEWXHBIATDljX7B_7rhqLv6t'
+TOKEN = 'BQADo7ogVxpEjhWKEyMxUwcES5YRrnKctRgBRvNqk5g5R1sgBeHQ15SLrAK9YVNh4bDqO3LSpnPb6LQq0CrQiOyEKQKyiUxKPS8jwRYUJAq0SWlH1AxYnGGtkS3J-Ae3RzqQhtY5k05qjZDmLs_bwOp1RwjeLWK0xvoXxO11'
 
 
-def check_valid_data(df: pd.DataFrame) -> bool:
+def check_data(df: pd.DataFrame) -> bool:
     if df.empty:
         print("No songs downloaded. Finishing process")
 
         return False
 
-    #Primary key check
-    if pd.series(df[0]).is_unique:
-        pass
-    else:
-        raise Exception("Primary key check is violated")
-
     if df.isnull().values.any():
         raise Exception("Null value found")
     else:
         pass
-    pass
 
+    yesterday = datetime.now() - timedelta(days = 1)
+    yesterday.replace(hour=0, minute=0, second=0 , microsecond=0)
+    timestamps = df['timestamp'].tolist()
+    for timestamp in timestamps:
+        if datetime.strptime(timestamp ,  '%Y-%m-%d') != yesterday:
+            pass
+        else:
+            raise Exception("Pelo menos uma das música não apresenta a data de ontem")
+    return True
 
 if __name__ == "__main__":
-    # Extract part of the ETL process
 
+    # Extract part of the ETL process
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -61,23 +63,24 @@ if __name__ == "__main__":
         song_duration = song['track']['duration_ms']
         song_url = song['track']['external_urls']['spotify']
         song_time_played = song['played_at']
+        timestamp = song["played_at"][0:10]
         album_id = song['track']['album']['id']
-        artist_id =song['track']['artists'][0]['id']
+        artist_id = song['track']['artists'][0]['id']
         song_attributes = { 'song_id': song_id , 'song_name': song_name , 'song_duration': song_duration,
-                            'song_utl': song_url , 'song_time_played': song_time_played,
+                            'song_utl': song_url , 'song_time_played': song_time_played, 'timestamp':timestamp,
                            'album_id': album_id , 'artist_id': artist_id}
         song_list.append(song_attributes)
 
 
-    #Create Artist Data Struture
+    #Create Artist Data Structure
     artist_list = []
     for song in data['items']:
         artist_id = song['track']['artists'][0]['id']
         artist_name = song['track']['artists'][0]['name']
         artist_url = song['track']['external_urls']['spotify']
-        song_time_played = song['played_at']
+        timestamp = song["played_at"][0:10]
         artist_attributes = {'artist_id': artist_id , 'artist_name': artist_name, 'artist_url': artist_url,
-                             'song_time_played': song_time_played}
+                             'timestamp': timestamp}
         artist_list.append(artist_attributes)
 
     album_list = []
@@ -86,10 +89,10 @@ if __name__ == "__main__":
         album_name = song['track']['album']['name']
         album_release_date = song['track']['album']['release_date']
         album_total_tracks = song['track']['album']['total_tracks']
-        song_time_played = song['played_at']
+        timestamp = song["played_at"][0:10]
         album_url = song['track']['album']['external_urls']['spotify']
         album_attributes = {'album_id': album_id, 'name': album_name, 'release_date': album_release_date,
-                         'total_tracks': album_total_tracks, 'url': album_url, 'song_time_played': song_time_played}
+                         'total_tracks': album_total_tracks, 'url': album_url, 'timestamp': timestamp }
         album_list.append(album_attributes)
 
 
@@ -105,8 +108,17 @@ if __name__ == "__main__":
 
     song_df = pd.DataFrame.from_dict(song_list)
 
+    dados = []
 
-    song_df.to_csv("songs.csv", index = False)
+    dados = [album_df, artist_df , song_df]
+
+    for df in dados:
+        if check_data(df):
+            print("Data valid, proceed to Load stage")
+            pass
+
+
+    print("Processo de load finalizado)
 
 
 
