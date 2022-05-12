@@ -43,7 +43,7 @@ class LoadData:
 
 
         query = f"""
-                        INSERT INTO artistas
+                        INSERT INTO {tabela}
                         SELECT tmp_table.* FROM tmp_table
                         LEFT JOIN {tabela} USING ({id_tabela})
                         WHERE {tabela}.{id_tabela} IS NULL;

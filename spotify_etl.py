@@ -104,8 +104,8 @@ if __name__ == "__main__":
     musica_df['data'] = pd.to_datetime(musica_df['data'])
     musica_df['unix_timestamp'] = musica_df['data'].apply( lambda x: int (datetime.timestamp(x)))
 
-    musica_df['identificador_unico'] = musica_df['id_musica'] + '-' + musica_df['unix_timestamp'].astype("str")
-    musica_df = musica_df[['identificador_unico', 'nome_musica', 'duracao_musica' , 'url_musica', 'data', 'id_album', 'id_artista', 'timestamp']]
+    musica_df['id_musica'] = musica_df['id_musica'] + '-' + musica_df['unix_timestamp'].astype("str")
+    musica_df = musica_df[['id_musica', 'nome_musica', 'duracao_musica' , 'url_musica', 'data', 'id_album', 'id_artista', 'timestamp']]
 
     dados = []
 
@@ -123,6 +123,7 @@ if __name__ == "__main__":
          id_artista VARCHAR(200),
          nome_artista VARCHAR(200),
          url_artista VARCHAR(200),
+         timestamp VARCHAR(200),
          CONSTRAINT primary_key_constraint PRIMARY KEY (id_artista)
      )
      """
@@ -134,13 +135,14 @@ if __name__ == "__main__":
             lançamento VARCHAR(200),
             url_album VARCHAR(200),
             numero_musicas VARCHAR(200),
+            timestamp VARCHAR(200),
             CONSTRAINT primary_key_constraint PRIMARY KEY (id_album)
         )
         """
 
     sql_query_musica = """
         CREATE TABLE IF NOT EXISTS musicas(
-            id_unico VARCHAR(200),
+            id_musica VARCHAR(200),
             nome_musica VARCHAR(200),
             duracao_musica VARCHAR(200),
             url_musica VARCHAR(200),
@@ -148,16 +150,20 @@ if __name__ == "__main__":
             id_album   VARCHAR(200),
             id_artista VARCHAR(200),
             timestamp VARCHAR(200), 
-            CONSTRAINT primary_key_constraint PRIMARY KEY (id_unico)
+            CONSTRAINT primary_key_constraint PRIMARY KEY (id_musica)
         )
         """
-    artist_df = artist_df[['id_artista', 'nome_artista', 'url_artista']]
+   # artist_df = artist_df[['id_artista', 'nome_artista', 'url_artista']]
 
-    conexao = LoadData( DATABASE_LOCATION, "minhas_musicas.db", artist_df)
+    dados = {"albuns": [album_df, "id_album",sql_query_album ], "artistas": [artist_df, "id_artista", sql_query_artista],  "musicas" :  [musica_df, "id_musica", sql_query_musica]}
 
-    conexao.criando_table(sql_query_artista)
+    for key , value in dados.items():
 
-    conexao.inserindo_dados("artistas", "id_artista")
+        conexao = LoadData( DATABASE_LOCATION, "minhas_musicas.db", value[0])
+
+        conexao.criando_table(value[2])
+
+        conexao.inserindo_dados(key, value[1])
 
 
 
